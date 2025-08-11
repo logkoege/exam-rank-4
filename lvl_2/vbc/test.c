@@ -3,14 +3,6 @@
 #include <ctype.h>
 #include <stdio.h>
 
-void err(const char *msg)
-{
-	while (*msg)
-		if (write(2, msg++, 1) < 0)
-			exit(1);
-	exit(1);
-}
-
 int expr(const char *s, int *i);
 
 int factor(const char *s, int *i)
@@ -32,7 +24,10 @@ int factor(const char *s, int *i)
 	if (isdigit(s[*i]))
 		return s[(*i)++] - '0';
 	if (s[*i] == '\0')
-		err("unexpected end of input\n");
+	{
+		printf("unexpected end of input\n");
+		exit(1);
+	}
 	return 0;
 }
 
@@ -68,12 +63,10 @@ int main(int ac, char **av)
 	if (av[1][i])
 	{
 		if (av[1][i] == ')')
-		{
 			printf("unexpected token '%c'\n", av[1][i]);
-			exit(1);
-		}
 		else
-			err("unexpected token\n");
+			printf("unexpected token\n");
+		exit(1);
 	}
 	if (printf("%d\n", res) < 0)
 		exit(1);
