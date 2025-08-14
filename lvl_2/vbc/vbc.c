@@ -34,7 +34,7 @@ int factor(const char *s, int *i)
 int term(const char *s, int *i)
 {
 	int res = factor(s, i);
-	while (s[*i++] == '*')
+	while (s[*i] == '*')
 	{
 		(*i)++;
 		res *= factor(s, i);
