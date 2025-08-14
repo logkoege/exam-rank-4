@@ -6,7 +6,7 @@
 /*   By: logkoege <logkoege@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 11:30:09 by logkoege          #+#    #+#             */
-/*   Updated: 2025/08/08 16:38:57 by logkoege         ###   ########.fr       */
+/*   Updated: 2025/08/14 11:59:45 by logkoege         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,16 +20,17 @@ int	ft_popen(const char *file, char *const av[], char type)
 	pid_t	pid;
 
 	if (!av || !file || (type != 'w' && type != 'r'))
-		return (1);
-	if (pipe(fd) < 0)
-		return (1);
+		return (-1);
+	if (pipe(fd) < 0)// si la cration de la pipe m'a pas marché
+		return (-1);
 	pid = fork();
-	if(pid < 0)
+	if (pid < 0)// si la fork na pas marché
 	{
 		close(fd[1]);
 		close(fd[0]);
+		return (-1);
 	}
-	if (pid == 0)
+	if (pid == 0)// si on est dans le fils
 	{
 		if (type == 'r')
 		{
@@ -43,10 +44,10 @@ int	ft_popen(const char *file, char *const av[], char type)
 			dup2(fd[0], 0);
 			close(fd[0]);
 		}
-		close(fd[0]);
-		close(fd[1]);
+		//close(fd[1]);			pas obliger mais marche avec
+		//close(fd[0]);			pas obliger mais marche avec
 		execvp(file, av);
-		exit(1);
+		exit(-1);// si execvp a pas marché
 	}
 	if (type == 'r')
 	{

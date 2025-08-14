@@ -1,101 +1,71 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   vbc.c                                              :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: logkoege <logkoege@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/07 11:46:47 by logkoege          #+#    #+#             */
-/*   Updated: 2025/08/08 16:39:15 by logkoege         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-#include <stdlib.h>
 #include <unistd.h>
-#include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
- 
-int	add(const char **str);
- 
-int	error = 0;
- 
-int	parse_error(const char c)
+#include <stdio.h>
+
+int expr(const char *s, int *i);
+
+int factor(const char *s, int *i)
 {
-	if (c)
-		printf("Wrong char %c\n", c);
-	else
-		printf("Wrong end\n");
-	error = 1;
-	return (0);
-}
- 
-int	parsus(const char **str)
-{
-	if (**str == '(')
+	int res;
+
+	if (s[*i] == '(')
 	{
-		(*str)++;
-		int	value = add(str);
-		if (error == 1)
-			return (0);
-		if (**str != ')')
-			return (parse_error(**str));
-		(*str)++;
-		return (value);
+		(*i)++;
+		res = expr(s, i);
+		if (s[*i] != ')')
+		{
+			printf("unexpected token '%c'\n", s[*i]);
+			exit(1);
+		}
+		(*i)++;
+		return res;
 	}
-	if (isdigit(**str))
+	if (isdigit(s[*i]))
+		return s[(*i)++] - '0';
+	if (s[*i] == '\0')
 	{
-		int	tmp = **str - '0';
-		(*str)++;
-		return (tmp);
+		printf("unexpected end of input\n");
+		exit(1);
 	}
-	return (parse_error(**str));
+	return 0;
 }
 
-int	multi(const char **str)
+int term(const char *s, int *i)
 {
-	int	value = parsus(str);
-	if (error == 1)
-		return (0);
-	while (**str == '*')
+	int res = factor(s, i);
+	while (s[*i++] == '*')
 	{
-		(*str)++;
-		value *= parsus(str);
-		if (error == 1)
-			return (0);
-		}
-		return (value);
+		(*i)++;
+		res *= factor(s, i);
 	}
-	
-	int	add(const char **str)
-	{
-		int	value = multi(str);
-		if (error == 1)
-			return (0);
-		while (**str == '+')
-		{
-			(*str)++;
-			value += multi(str);
-			if (error == 1)
-				return (0);
-		}
-		return (value);
-	}
- 
-int	main(int argc, char **argv)
+	return res;
+}
+
+int expr(const char *s, int *i)
 {
-	if (argc != 2)
-		return (1);
- 
-	const char	*str = argv[1];
-	int			result = add(&str);
- 
-	if (error == 0 && *str != '\0')
+	int res = term(s, i);
+	while (s[*i] == '+')
 	{
-		parse_error(*str);
-		return (1);
+		(*i)++;
+		res += term(s, i);
 	}
-	if (error == 1)
-		return (1);
-	printf("%d\n", result);
-	return (0);
+	return res;
+}
+
+int main(int ac, char **av)
+{
+	int i = 0;
+	int res = expr(av[1], &i);
+
+	if (ac != 2)
+		return 1;
+	if (av[1][i])
+	{
+		printf("unexpected token '%c'\n", av[1][i]);
+		exit(1);
+	}
+	if (printf("%d\n", res) < 0)
+		exit(1);
+	return 0;
 }
